@@ -109,6 +109,7 @@
               </form>
 
               <p class="status success" ng-if="vm.successMessage">{{ vm.successMessage }}</p>
+              <p class="status error" ng-if="vm.errorMessage">{{ vm.errorMessage }}</p>
             </section>
           `,
           controller: 'ReimbursementController',
@@ -254,7 +255,15 @@
           })
           .catch((error) => {
             const response = error?.data || {};
-            vm.errorMessage = response.message || response.error || 'Failed to submit reimbursement.';
+            if (typeof response === 'string') {
+              vm.errorMessage = response;
+            } else {
+              vm.errorMessage = response.message || response.error || '';
+            }
+            if (!vm.errorMessage) {
+              const status = error?.status ? ` (${error.status})` : '';
+              vm.errorMessage = `Failed to submit reimbursement${status}.`;
+            }
             vm.fieldErrors = Array.isArray(response.fieldErrors) ? response.fieldErrors : [];
             vm.fieldErrorsMap = vm.fieldErrors.reduce((acc, item) => {
               if (item?.field && item?.message) {
