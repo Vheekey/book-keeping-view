@@ -1,0 +1,11 @@
+{
+  "name": "book-keeping-portal",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "http-server -p 5173"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

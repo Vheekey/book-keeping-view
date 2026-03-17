@@ -1,0 +1,27 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Mac
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Coverage
+coverage/
+
+# Env
+.env
+.env.*
+
+# Logs
+logs/
+*.log
+
+# Env overrides
+env.local.js
