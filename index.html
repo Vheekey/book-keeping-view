@@ -12,18 +12,33 @@
       rel="stylesheet"
     />
   </head>
-  <body>
+  <body ng-controller="MainNavController as nav">
     <header class="app-header">
-      <div class="brand">
+      <a href="#!/home" class="brand" ng-click="nav.close()" aria-label="Go to home">
         <div class="brand-mark">BK</div>
         <div>
           <h1>Book Keeping Portal</h1>
           <p>Reimbursements and account access</p>
         </div>
-      </div>
-      <nav class="app-nav">
-        <a href="#!/reimbursement" class="nav-link">Create reimbursement</a>
-        <a href="#!/login" class="nav-link">Login</a>
+      </a>
+      <button
+        type="button"
+        class="nav-toggle"
+        ng-click="nav.toggle()"
+        ng-attr-aria-expanded="{{ nav.isOpen }}"
+        aria-label="Toggle navigation"
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <nav class="app-nav" ng-class="{ 'is-open': nav.isOpen }">
+        <a href="#!/reimbursement" class="nav-link" ng-click="nav.close()">Create reimbursement</a>
+        <a href="#!/admin" class="nav-link" ng-if="nav.hasAnyRole(['SADMIN', 'ADMIN', 'FINANCE'])" ng-click="nav.close()">Admin</a>
+        <a href="#!/login" class="nav-link" ng-if="!nav.isAuthenticated()" ng-click="nav.close()">Login</a>
+        <button type="button" class="nav-link nav-link-button" ng-if="nav.isAuthenticated()" ng-click="nav.logout()">
+          Logout {{ nav.roleLabel() }}
+        </button>
       </nav>
     </header>
 
@@ -32,8 +47,85 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.min.js"></script>
     <script src="https://unpkg.com/rxjs@7.8.1/dist/bundles/rxjs.umd.min.js"></script>
+    <script>
+      (function loadVendors() {
+        const loadScript = (src) =>
+          new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+
+        const tryLoad = (primary, fallback, onPrimary, onFallback) =>
+          loadScript(primary)
+            .then(() => {
+              if (onPrimary) onPrimary();
+            })
+            .catch(() =>
+              loadScript(fallback).then(() => {
+                if (onFallback) onFallback();
+              })
+            );
+
+        const pdfLocal = '/vendor/pdf.min.js';
+        const pdfCdn = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.js';
+        const workerLocal = '/vendor/pdf.worker.min.js';
+        const workerCdn = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.js';
+
+        const tessLocal = '/vendor/tesseract.min.js';
+        const tessCdn = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.5/dist/tesseract.min.js';
+        const sweetAlertCdn = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
+
+        tryLoad(
+          pdfLocal,
+          pdfCdn,
+          () => {
+            window.__PDF_WORKER_SRC__ = workerLocal;
+          },
+          () => {
+            window.__PDF_WORKER_SRC__ = workerCdn;
+          }
+        ).catch(() => {});
+
+        tryLoad(tessLocal, tessCdn).catch(() => {});
+        loadScript(sweetAlertCdn).catch(() => {});
+      })();
+    </script>
     <script src="env.local.js"></script>
     <script src="env.js"></script>
-    <script src="app.js"></script>
+    <script src="src/app.module.js"></script>
+    <script src="src/config/vendor.config.js"></script>
+    <script src="src/templates/home.template.js"></script>
+    <script src="src/templates/reimbursement.template.js"></script>
+    <script src="src/templates/admin-home.template.js"></script>
+    <script src="src/templates/budget-admin.template.js"></script>
+    <script src="src/templates/reimbursement-admin.template.js"></script>
+    <script src="src/templates/login.template.js"></script>
+    <script src="src/templates/user-admin.template.js"></script>
+    <script src="src/templates/role-admin.template.js"></script>
+    <script src="src/services/api-error.service.js"></script>
+    <script src="src/services/form-error.service.js"></script>
+    <script src="src/services/auth-session.service.js"></script>
+    <script src="src/services/auth-api.service.js"></script>
+    <script src="src/services/auth-http.interceptor.js"></script>
+    <script src="src/services/access-control.service.js"></script>
+    <script src="src/services/budget-category.service.js"></script>
+    <script src="src/services/reimbursement-admin.service.js"></script>
+    <script src="src/services/user-admin.service.js"></script>
+    <script src="src/services/role-admin.service.js"></script>
+    <script src="src/services/ocr.service.js"></script>
+    <script src="src/services/sweet-alert.service.js"></script>
+    <script src="src/directives/file-change.directive.js"></script>
+    <script src="src/controllers/navigation/main-nav.controller.js"></script>
+    <script src="src/controllers/reimbursement/reimbursement.controller.js"></script>
+    <script src="src/controllers/admin/admin-home.controller.js"></script>
+    <script src="src/controllers/admin/budget-admin.controller.js"></script>
+    <script src="src/controllers/admin/reimbursement-admin.controller.js"></script>
+    <script src="src/controllers/admin/user-admin.controller.js"></script>
+    <script src="src/controllers/admin/role-admin.controller.js"></script>
+    <script src="src/controllers/auth/login.controller.js"></script>
+    <script src="src/config/routes.js"></script>
   </body>
 </html>
