@@ -2,8 +2,9 @@
   window.BookKeepingPortal.module.controller('MainNavController', [
     '$scope',
     '$location',
+    'AuthApiService',
     'AuthSessionService',
-    function ($scope, $location, AuthSessionService) {
+    function ($scope, $location, AuthApiService, AuthSessionService) {
       const vm = this;
 
       vm.isOpen = false;
@@ -37,10 +38,14 @@
       };
 
       vm.logout = function () {
-        AuthSessionService.clear();
-        vm.session = null;
-        vm.close();
-        $location.path('/login');
+        return AuthApiService.logout()
+          .catch(() => null)
+          .finally(() => {
+            AuthSessionService.clear();
+            vm.session = null;
+            vm.close();
+            $location.path('/login');
+          });
       };
 
       $scope.$on('$routeChangeSuccess', vm.close);

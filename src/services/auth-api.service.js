@@ -9,6 +9,10 @@
         return $http.post(`${API_BASE}/users/auth/login`, payload).then((response) => response.data);
       };
 
+      this.logout = function () {
+        return $http.post(`${API_BASE}/users/auth/logout`).then((response) => response.data);
+      };
+
       this.register = function (payload) {
         return $http.post(`${API_BASE}/users`, payload).then((response) => response.data);
       };
