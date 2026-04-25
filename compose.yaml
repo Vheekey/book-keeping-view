@@ -1,0 +1,10 @@
+services:
+  book-keeping-portal:
+    build:
+      context: .
+    image: book-keeping-portal:latest
+    ports:
+      - "8080:80"
+    environment:
+      API_BASE: ${API_BASE:-http://localhost:9095/api/v1/book-keeping}
+    restart: unless-stopped
