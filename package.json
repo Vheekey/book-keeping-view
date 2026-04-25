@@ -3,9 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "http-server -p 5173"
+    "start": "http-server -p 5173",
+    "postinstall": "node scripts/copy-vendor.js"
   },
   "devDependencies": {
     "http-server": "^14.1.1"
+  },
+  "dependencies": {
+    "pdfjs-dist": "^2.16.105",
+    "tesseract.js": "^5.0.5"
   }
 }
