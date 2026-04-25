@@ -98,18 +98,19 @@
                   <th>Name</th>
                   <th>Amount</th>
                   <th>Status</th>
+                  <th>Receipt</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
                 <tr ng-if="vm.loadingReimbursements">
-                  <td colspan="5" class="empty-state">Loading reimbursements...</td>
+                  <td colspan="6" class="empty-state">Loading reimbursements...</td>
                 </tr>
                 <tr ng-if="!vm.loadingReimbursements && !vm.reimbursements.length">
-                  <td colspan="5" class="empty-state">No reimbursements found for this filter.</td>
+                  <td colspan="6" class="empty-state">No reimbursements found for this filter.</td>
                 </tr>
                 <tr ng-if="!vm.loadingReimbursements && vm.reimbursements.length && !vm.filteredReimbursements().length">
-                  <td colspan="5" class="empty-state">No loaded reimbursements match this search.</td>
+                  <td colspan="6" class="empty-state">No loaded reimbursements match this search.</td>
                 </tr>
                 <tr
                   ng-repeat="reimbursement in vm.filteredReimbursements() track by reimbursement.id"
@@ -122,6 +123,12 @@
                     <span class="status-pill" ng-class="vm.reimbursementStatusClass(reimbursement.status)">
                       {{ reimbursement.status }}
                     </span>
+                  </td>
+                  <td>
+                    <span class="status-pill active" ng-if="vm.hasReceipt(reimbursement)">
+                      {{ vm.receiptCountLabel(reimbursement) }}
+                    </span>
+                    <span class="helper-text" ng-if="!vm.hasReceipt(reimbursement)">None</span>
                   </td>
                   <td class="table-actions">
                     <button type="button" class="secondary" ng-click="vm.selectReimbursement(reimbursement.id)">
@@ -209,9 +216,93 @@
                 <dt>Expenditure date</dt>
                 <dd>{{ vm.formatDate(vm.selectedReimbursement.expenditureDate) }}</dd>
               </div>
+              <div>
+                <dt>Should reimburse</dt>
+                <dd>{{ vm.reimbursementBooleanLabel(vm.selectedReimbursement, ['shouldReimburse']) }}</dd>
+              </div>
+              <div>
+                <dt>Account name</dt>
+                <dd>{{ vm.reimbursementField(vm.selectedReimbursement, ['accountName', 'accountHolderName']) }}</dd>
+              </div>
+              <div>
+                <dt>Clearing number</dt>
+                <dd>{{ vm.reimbursementField(vm.selectedReimbursement, ['clearingNumber', 'clearingNo']) }}</dd>
+              </div>
+              <div>
+                <dt>Account number</dt>
+                <dd>{{ vm.reimbursementField(vm.selectedReimbursement, ['accountNumber', 'accNumber']) }}</dd>
+              </div>
+              <div>
+                <dt>Phone number</dt>
+                <dd>{{ vm.reimbursementField(vm.selectedReimbursement, ['phoneNumber', 'phoneNo']) }}</dd>
+              </div>
+              <div>
+                <dt>Details confirmed correct</dt>
+                <dd>{{ vm.reimbursementBooleanLabel(vm.selectedReimbursement, ['isCorrect', 'correct']) }}</dd>
+              </div>
               <div class="full-width">
                 <dt>Description</dt>
                 <dd>{{ vm.selectedReimbursement.description || 'n/a' }}</dd>
+              </div>
+              <div class="full-width">
+                <dt>Receipts</dt>
+                <dd>
+                  <span ng-if="vm.loadingReceipts">Loading receipts...</span>
+                  <span ng-if="!vm.loadingReceipts && !vm.selectedReceipts.length">n/a</span>
+                  <div class="receipt-list" ng-if="!vm.loadingReceipts && vm.selectedReceipts.length">
+                    <div class="receipt-list-item" ng-repeat="receipt in vm.selectedReceipts track by receipt.id || receipt.url || $index">
+                      <span>{{ receipt.name || 'Receipt' }}</span>
+                      <span class="helper-text" ng-if="receipt.uploadedAt">{{ vm.formatDateTime(receipt.uploadedAt) }}</span>
+                      <div class="receipt-actions">
+                        <button
+                          type="button"
+                          class="receipt-view-button"
+                          ng-click="vm.openReceipt(receipt)"
+                          ng-disabled="vm.loadingReceipt"
+                        >
+                          <span class="button-icon" aria-hidden="true">↗</span>
+                          {{ vm.loadingReceipt ? 'Opening...' : 'View' }}
+                        </button>
+                        <button
+                          type="button"
+                          class="secondary danger-button"
+                          ng-click="vm.deleteReceipt(receipt)"
+                          ng-disabled="!receipt.id || vm.deletingReceiptId === receipt.id"
+                        >
+                          <span class="button-icon" aria-hidden="true">🗑</span>
+                          {{ vm.deletingReceiptId === receipt.id ? 'Removing...' : 'Remove' }}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </dd>
+              </div>
+              <div class="full-width">
+                <dt>Add receipt</dt>
+                <dd>
+                  <form class="receipt-upload-form" ng-submit="vm.uploadReceipt()">
+                    <label>
+                      Receipt file
+                      <input
+                        type="file"
+                        accept="application/pdf,image/*"
+                        file-change="vm.onAdminReceiptFileChange($files)"
+                      />
+                    </label>
+                    <span class="receipt-file-chip" ng-if="vm.adminReceiptFile">
+                      {{ vm.adminReceiptFile.name }}
+                      <button type="button" class="link-button" ng-click="vm.clearAdminReceiptFile()">Remove</button>
+                    </span>
+                    <span class="field-error" ng-if="vm.adminReceiptError">{{ vm.adminReceiptError }}</span>
+                    <button
+                      type="submit"
+                      class="secondary"
+                      ng-disabled="!vm.adminReceiptFile || vm.adminReceiptError || vm.uploadingReceipt"
+                    >
+                      {{ vm.uploadingReceipt ? 'Uploading...' : 'Attach receipt' }}
+                    </button>
+                  </form>
+                </dd>
               </div>
               <div class="full-width">
                 <dt>Comment</dt>
@@ -227,6 +318,7 @@
               </div>
             </dl>
           </div>
+          <div class="alert-banner alert-banner-error" ng-if="vm.receiptError">{{ vm.receiptError }}</div>
         </section>
       </div>
     </section>

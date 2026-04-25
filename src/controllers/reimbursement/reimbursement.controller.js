@@ -41,6 +41,32 @@
         });
       }
 
+      function firstPresent(values) {
+        return values.find((value) => value !== undefined && value !== null && value !== '');
+      }
+
+      function extractReimbursementId(response) {
+        const data = response?.data || {};
+        const reimbursement = Array.isArray(data.reimbursements) ? data.reimbursements[0] : data.reimbursement;
+
+        return firstPresent([
+          reimbursement?.id,
+          data.reimbursementId,
+          data.id,
+          data.data?.id,
+        ]);
+      }
+
+      function uploadReceipt(reimbursementId, receiptFile) {
+        const formData = new FormData();
+        formData.append('receipt', receiptFile);
+
+        return $http.post(`${API_BASE}/reimbursements/${reimbursementId}/receipts`, formData, {
+          headers: { 'Content-Type': undefined },
+          transformRequest: angular.identity,
+        });
+      }
+
       vm.form = createInitialForm();
       vm.categories = [];
       vm.loadingCategories = true;
@@ -50,6 +76,8 @@
       vm.fieldErrors = [];
       vm.fieldErrorsMap = {};
       vm.selectedFile = null;
+      vm.receiptFile = null;
+      vm.receiptError = '';
       vm.ocrRunning = false;
       vm.ocrStatus = '';
       vm.ocrError = '';
@@ -81,6 +109,36 @@
           vm.ocrError = 'Please upload a PDF or image file.';
           vm.selectedFile = null;
         }
+      };
+
+      vm.onReceiptFileChange = function (files) {
+        const file = files?.[0] || null;
+        vm.receiptError = '';
+        vm.receiptFile = file;
+
+        if (!file) {
+          return;
+        }
+
+        const isPdf = file.type === 'application/pdf';
+        const isImage = file.type.startsWith('image/');
+        const maxSize = 10 * 1024 * 1024;
+
+        if (!isPdf && !isImage) {
+          vm.receiptError = 'Please attach a receipt as a PDF or image file.';
+          vm.receiptFile = null;
+          return;
+        }
+
+        if (file.size > maxSize) {
+          vm.receiptError = 'Please attach a receipt smaller than 10 MB.';
+          vm.receiptFile = null;
+        }
+      };
+
+      vm.clearReceiptFile = function () {
+        vm.receiptFile = null;
+        vm.receiptError = '';
       };
 
       vm.runOcr = function () {
@@ -123,8 +181,30 @@
           isCorrect: vm.form.isCorrect === 'true',
         };
 
+        const receiptFile = vm.receiptFile;
+
         $http
           .post(`${API_BASE}/reimbursements/create`, payload)
+          .then((response) => {
+            if (!receiptFile) return response;
+
+            const reimbursementId = extractReimbursementId(response);
+            if (!reimbursementId) {
+              throw {
+                receiptUploadOnly: true,
+                message: 'Reimbursement was submitted, but the receipt could not be attached because the response did not include a reimbursement id.',
+              };
+            }
+
+            return uploadReceipt(reimbursementId, receiptFile)
+              .then(() => response)
+              .catch((error) => {
+                throw {
+                  receiptUploadOnly: true,
+                  originalError: error,
+                };
+              });
+          })
           .then(() => {
             vm.successMessage = '';
             vm.form = {
@@ -132,9 +212,27 @@
               amount: null,
               name: vm.currentUser?.name || '',
             };
+            vm.receiptFile = null;
+            vm.receiptError = '';
             return SweetAlertService.success('Reimbursement submitted', 'Your reimbursement was submitted successfully.');
           })
           .catch((error) => {
+            if (error?.receiptUploadOnly) {
+              const parsed = error.originalError
+                ? ApiErrorService.parse(error.originalError, 'Failed to upload receipt')
+                : { message: error.message, fieldErrors: [] };
+
+              vm.form = {
+                ...createInitialForm(),
+                amount: null,
+                name: vm.currentUser?.name || '',
+              };
+              vm.receiptFile = null;
+              vm.receiptError = '';
+              vm.errorMessage = parsed.message;
+              return SweetAlertService.error('Receipt upload failed', parsed.message);
+            }
+
             const parsed = ApiErrorService.parse(error, 'Failed to submit reimbursement');
             vm.errorMessage = parsed.message;
             vm.fieldErrors = parsed.fieldErrors;

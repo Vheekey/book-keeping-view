@@ -307,6 +307,46 @@ textarea {
   font-weight: 600;
 }
 
+.receipt-file-chip,
+.receipt-actions {
+  display: inline-flex;
+  gap: 0.65rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.receipt-file-chip {
+  justify-self: start;
+  padding: 0.38rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(15, 118, 110, 0.1);
+  color: var(--accent-deep);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.receipt-list,
+.receipt-upload-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.receipt-list-item {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding: 0.75rem;
+  border: 1px solid rgba(16, 19, 28, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 253, 247, 0.72);
+}
+
+.receipt-upload-form {
+  max-width: 520px;
+}
+
 .form-actions {
   margin-top: 1.5rem;
   display: flex;
@@ -338,6 +378,34 @@ button.secondary {
   color: var(--accent-strong);
   border: 1px solid var(--accent-strong);
   box-shadow: none;
+}
+
+button.danger-button {
+  color: #972331;
+  border-color: rgba(178, 31, 45, 0.58);
+  background: rgba(178, 31, 45, 0.08);
+}
+
+button.danger-button:hover:not(:disabled) {
+  color: white;
+  border-color: transparent;
+  background: linear-gradient(140deg, #972331, #b21f2d);
+  box-shadow: 0 16px 34px rgba(178, 31, 45, 0.22);
+}
+
+button.link-button {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--accent-strong);
+  box-shadow: none;
+  text-decoration: underline;
+}
+
+.button-icon {
+  display: inline-flex;
+  margin-right: 0.35rem;
+  line-height: 1;
 }
 
 button:disabled {

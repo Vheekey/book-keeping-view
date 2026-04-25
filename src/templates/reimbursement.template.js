@@ -129,6 +129,21 @@
             </span>
           </label>
           <label>
+            Receipt
+            <input
+              type="file"
+              accept="application/pdf,image/*"
+              file-change="vm.onReceiptFileChange($files)"
+            />
+            <span class="helper-text">Optional. Attach a PDF or image receipt.</span>
+            <span class="receipt-file-chip" ng-if="vm.receiptFile">
+              {{ vm.receiptFile.name }}
+              <button type="button" class="link-button" ng-click="vm.clearReceiptFile()">Remove</button>
+            </span>
+            <span class="field-error" ng-if="vm.receiptError">{{ vm.receiptError }}</span>
+            <span class="field-error" ng-if="vm.fieldErrorsMap.receipt">{{ vm.fieldErrorsMap.receipt }}</span>
+          </label>
+          <label>
             Confirm details are correct
             <select ng-model="vm.form.isCorrect" required>
               <option value="true">Yes</option>
@@ -141,7 +156,7 @@
         </div>
 
         <div class="form-actions">
-          <button type="submit" ng-disabled="vm.submitting">Submit reimbursement</button>
+          <button type="submit" ng-disabled="vm.submitting || vm.receiptError">Submit reimbursement</button>
           <span class="helper-text" ng-if="vm.loadingCategories">Loading categories...</span>
         </div>
       </form>
