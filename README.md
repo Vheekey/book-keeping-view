@@ -171,6 +171,8 @@ docker compose down
 
 The compose service publishes the app on `http://localhost:8080/#!/home`, injects `API_BASE` at container startup, and restarts automatically unless stopped.
 
+For a full step-by-step guide, see [DOCKER_SETUP.md](/book-keeping-view/DOCKER_SETUP.md).
+
 ## Project Structure
 
 ```text
